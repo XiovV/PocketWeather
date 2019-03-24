@@ -22,9 +22,17 @@ class CountryInputState extends State<CountryInput> {
   String description = "";
   String descriptionImage = "";
 
+  void choiceAction(String choice) {
+    if (choice == "About") {
+      print("About");
+    } else if (choice == "Settings") {
+      print("Settings");
+    }
+  }
+
   getData(String country) async {
     final response = await http.get(
-        "http://138.68.73.49:6000/get-data/" + country,
+        "http://138.68.73.49:6000/w/" + country,
         headers: {"Accept": "application/json"});
 
     var data = jsonDecode(response.body);
@@ -32,11 +40,11 @@ class CountryInputState extends State<CountryInput> {
     print(data);
 
     setState(() {
-      temp = data['temp'].round().toString();
-      windSpeed = data['windSpeed'].toString();
-      clouds = data['clouds'].toString();
-      humidity = data['humidity'].toString();
-      description = data['description'];
+      temp = data['t'].round().toString();
+      windSpeed = data['w'].toString();
+      clouds = data['c'].toString();
+      humidity = data['h'].toString();
+      description = data['d'];
 
       if(description == "light rain" || description == "moderate rain" || description == "heavy intensity rain" || description == "very heavy rain" || description == "extreme rain" || description == "freezing rain" || description == "light intensity shower rain" || description == "shower rain" || description == "heavy intensity shower rain" || description == "ragged shower rain") {
         descriptionImage = 'images/rain.png';
@@ -59,6 +67,14 @@ class CountryInputState extends State<CountryInput> {
     const marginMain = 10.0;
     const fontSizeRow = 30.0;
 
+    const String About = "About";
+    const String Settings = "Settings";
+
+    const List<String> choices = <String>[
+      About,
+      Settings
+    ];
+
     return new Scaffold(
       appBar: new AppBar(
         title: new Text("PocketWeather"),
@@ -70,21 +86,47 @@ class CountryInputState extends State<CountryInput> {
               getData(textInput);
             },
           ),
+          new PopupMenuButton(
+            onSelected: choiceAction,
+            itemBuilder: (BuildContext context) {
+              return choices.map((String choice){
+                return PopupMenuItem<String>(
+                  value: choice,
+                  child: new Text(choice),
+                );
+              }).toList();
+            },
+          ),
         ],
+      ),
+      drawer: new Drawer(
+        child: new ListView(children: <Widget>[
+          new ListTile(title: new Text("London"), onTap: () {
+            getData("London");
+            Navigator.pop(context);
+          },),
+          new ListTile(title: new Text("Sarajevo"), onTap: () {
+            getData("Sarajevo");
+            Navigator.pop(context);
+          },),
+          new ListTile(leading: Icon(Icons.add), title: new Text("Add City"), onTap: () {
+            Navigator.pop(context);
+          },),
+        ],),
       ),
       body: new Container(
         child: new Center(
           child: new Column(
             children: <Widget>[
-              new TextField(
-                decoration: new InputDecoration(hintText: "Enter your city"),
-                onSubmitted: (String str) {
-                  setState(() {
-                    textInput = str;
-                    getData(str);
-                  });
-                },
-              ),
+              // new TextField(
+              //   decoration: new InputDecoration(hintText: "Enter your city"),
+              //   onSubmitted: (String str) {
+              //     setState(() {
+              //       textInput = str;
+              //       getData(str);
+              //     });
+              //   },
+              // ),
               new Container(
                 margin: const EdgeInsets.only(top: 10, bottom: 10),
                 child: new Image.asset(descriptionImage, width: 200, height: 200)
@@ -133,6 +175,8 @@ class CountryInputState extends State<CountryInput> {
         ),
       ),
     );
+
+    
   }
 }
 
